@@ -138,10 +138,10 @@ class Player(Thing):
 
 
     def dash_color(self):
-        if not player.have_dash:
-            player.color = "Blue"
-        else:
+        if player.have_dash:
             player.color = "Green"
+        else:
+            player.color = "Blue"
 
         player.image.fill(player.color)
 
@@ -163,6 +163,10 @@ class Player(Thing):
             self.double_jump_ready = 1
 
         if key[pygame.K_z] and not self.jumping: # and self.double_jump_ready == 2:
+            if not self.have_dash:
+                self.dash_speed += (self.walk_speed * 4)
+                self.have_dash = True
+
             self.y_speed = -10
             self.jumping = True
             self.double_jump_ready = 2
@@ -177,9 +181,9 @@ class Player(Thing):
             self.y_speed +=.6
 
     def dash(self):
-        if key[pygame.K_x] and self.have_dash and self.dash_speed ==0:
-            self.dash_speed = self.walk_speed * 9
+        if key[pygame.K_x] and self.have_dash:
             self.have_dash = False
+            self.dash_speed = self.walk_speed * 8.5
             self.y_speed = 0
             #self.rect.centery -= 1
             
@@ -187,6 +191,9 @@ class Player(Thing):
         self.dash_speed *= .9
         if abs(self.dash_speed) < .7:
             self.dash_speed = 0
+
+        if not self.jumping and self.dash_speed == 0:
+            self.have_dash = True
 
     def update_move(self):
         self.rect.centery += self.y_speed
@@ -208,8 +215,8 @@ lv_index = 0
 
 player = Player("Green",30,30,300,100)
 
-platform = Terrain("Gray",200,50,100,350)
-platform2 = Terrain("Gray",200,50,700,350)
+platform = Terrain("Gray",200,50,130,350)
+platform2 = Terrain("Gray",200,50,680,350)
 #platform3 = Terrain("Gray",200,200,550,250)
 ground = Terrain("Gray",600,100,400,500)
 
