@@ -62,12 +62,12 @@ class Terrain(Thing):
 
                     if char.rect.right - round(char.x_speed) > self.rect.left: # - if player land ontop of platform
                         reset_ground(self)
-                        print(char.rect.right - char.x_speed,end=" ")
-                        print(self.rect.left)
 
+                        
                     else:
                         char.rect.right = self.rect.left
-                        #char.rect.centerx -= char.x_speed #if player hit the side of platform
+                        char.on_wall = True
+                        print("wall jump true!")
 
 
 
@@ -75,12 +75,11 @@ class Terrain(Thing):
   
                     if char.rect.left - round(char.x_speed)+1 < self.rect.right: # +  if player land ontop of platform
                         reset_ground(self)
-                        print(char.rect.left - char.x_speed,end=" ")
-                        print(self.rect.right)
 
                     else:
                         char.rect.left = self.rect.right
-                        #char.rect.centerx -= char.x_speed # if player hit the side of platform
+                        char.on_wall = True
+                        print("wall jump true!")
 
 
                         
@@ -96,24 +95,22 @@ class Terrain(Thing):
 
                     if char.rect.right - round(char.x_speed) > self.rect.left: # -
                         bonk_head(self)
-                        print(char.rect.right - char.x_speed,end=" ")
-                        print(self.rect.left)
 
                     else:
                         char.rect.right = self.rect.left
-                        #char.rect.centerx -= char.x_speed # if player hit the side of platform
+                        char.on_wall = True
+                        print("wall jump true!")
 
 
 
                 else: # if player moving left or not a all (doesn't matter)
                     if char.rect.left - round(char.x_speed)+1 < self.rect.right: # IDK WHY THE +1 WORKS BUT IT DOES OK
                         bonk_head(self)
-                        print(char.rect.left - char.x_speed,end=" ")
-                        print(self.rect.right)
 
                     else:
                         char.rect.left = self.rect.right
-                        #char.rect.centerx -= char.x_speed # if player hit the side of platform                               
+                        char.on_wall = True
+                        print("wall jump true!")                           
 
         elif char.rect.bottom == self.rect.top and char.rect.right > self.rect.left and char.rect.left < self.rect.right: #if player ontop of platform (being on top doesn't count as colliding for some reason)
             pass
@@ -121,16 +118,68 @@ class Terrain(Thing):
         else:
             num_not_collides += 1
 
+class Enemy(Thing):
+    def __init__(self,color,xsize,ysize,x,y,speed,on_x_axis,point1,point2):
+        super(Enemy,self).__init__(color,xsize,ysize,x,y)
+        self.speed = speed
+        self.on_x_axis = on_x_axis
+        self.point1 = point1
+        self.point2 = point2
+
+    def move(self):
+        if self.on_x_axis:
+            self.rect.centerx += self.speed
+            if self.rect.x > self.point2 or self.rect.x < self.point1:
+                self.speed *= -1
+        else:
+            self.rect.centery += self.speed
+            if self.rect.y > self.point2 or self.rect.y < self.point1:
+                self.speed *= -1
+
+
+    def kill_player(self,char):
+        char.rect.centerx = player_level_spawns[lv_index][0]
+        char.rect.centery = player_level_spawns[lv_index][1]
+
+    def collision(self,char):
+        global num_not_collides
+        if char.rect.colliderect(self.rect):
+            self.kill_player(char)
+        else:
+            num_not_collides += 1
+
+        self.move()
+
+class Portal(Thing):
+    def __init__(self,color,xsize,ysize,x,y):
+        super(Portal,self).__init__(color,xsize,ysize,x,y)
+
+    def reset_player(self,char):
+        char.rect.centerx = player_level_spawns[lv_index][0]
+        char.rect.centery = player_level_spawns[lv_index][1]
+
+
+    def collision(self,char):
+        global num_not_collides
+        global lv_index
+        if char.rect.colliderect(self.rect):
+            lv_index += 1
+            self.reset_player(char)
+        else:
+            num_not_collides += 1
+    
+
 class Player(Thing):
     def __init__(self,color,xsize,ysize,x,y):
-
         super(Player,self).__init__(color,xsize,ysize,x,y)
+        self.ground_speed = 2
         self.jumping = True
         self.y_speed = 0
-        self.walk_speed = 0
+        self.walk_speed = 0 # walk and ground speed are stupid names IK, its to late to change them now
         self.double_jump_ready = 2
         self.have_dash = True
-        self.dash_speed = 0
+        self.dash_speed = 0 
+        self.on_wall = False
 
         # jump ready 2 = on ground
         # jump ready 1 = in air and hasn't used it yet
@@ -147,12 +196,12 @@ class Player(Thing):
 
     def walk(self):
         if key[pygame.K_LEFT]:
-            self.rect.centerx -= 2 # MAGIC NUMBERS WOMP WOMP GO CRY ABOUT IT SKILL ISSUE 
+            self.rect.centerx -= self.ground_speed
             self.walk_speed = -2 # this keeps track of how fast we're going, we'll need this later for collision
             
             
         elif key[pygame.K_RIGHT]:
-            self.rect.centerx += 2 # MAGIC NUMBERS WOMP WOMP GO CRY ABOUT IT SKILL ISSUE 
+            self.rect.centerx += self.ground_speed
             self.walk_speed = 2 # this keeps track of how fast we're going, we'll need this later for collision
 
         else:
@@ -168,8 +217,8 @@ class Player(Thing):
                 self.have_dash = True
 
             self.y_speed = -10
-            self.jumping = True
             self.double_jump_ready = 2
+            self.jumping = True
             #if abs(self.dash_speed) >0:
                 #self.dash_speed += 12
 
@@ -179,6 +228,12 @@ class Player(Thing):
 
         if self.jumping:
             self.y_speed +=.6
+
+    def wall_jump(self):
+        if key[pygame.K_z] and self.on_wall:
+            self.dash_speed = self.walk_speed * -4
+            self.y_speed = -8
+            self.double_jump_ready = 2
 
     def dash(self):
         if key[pygame.K_x] and self.have_dash:
@@ -202,6 +257,7 @@ class Player(Thing):
     def all_player_methods(self):
         self.walk()
         self.jump()
+        self.wall_jump()
         self.dash()
         self.update_dash()
         self.update_move()
@@ -213,14 +269,21 @@ class Player(Thing):
     
 lv_index = 0   
 
+player_level_spawns = ((100,100),(400,100))
+
 player = Player("Green",30,30,300,100)
 
-platform = Terrain("Gray",200,50,130,350)
-platform2 = Terrain("Gray",200,50,680,350)
-#platform3 = Terrain("Gray",200,200,550,250)
+platform = Terrain("Gray",200,150,130,350)
+platform2 = Terrain("Gray",200,150,680,350)
 ground = Terrain("Gray",600,100,400,500)
 
+enemy = Enemy("Red",50,50,400,300,2,True,200,400)
+
+lv_1_portal = Portal("Purple",50,50,700,150)
+
 character_list = pygame.sprite.Group()
+
+
 lv_1_terrain = pygame.sprite.Group()
 lv_2_terrain = pygame.sprite.Group() 
 lv_3_terrain = pygame.sprite.Group()
@@ -228,7 +291,8 @@ lv_3_terrain = pygame.sprite.Group()
 lv_1_terrain.add(ground)
 lv_1_terrain.add(platform)
 lv_1_terrain.add(platform2)
-#lv_1_terrain.add(platform3)
+lv_1_terrain.add(enemy)
+lv_1_terrain.add(lv_1_portal)
 
 character_list.add(player)
 
@@ -257,6 +321,8 @@ while running:
 
     if num_not_collides == len(levels[lv_index]):
         player.jumping = True
+        player.on_wall = False
+        print("yeah")
 
     player.all_player_methods()
 
