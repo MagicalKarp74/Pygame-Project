@@ -10,13 +10,28 @@ pygame.init()
 
 
 # Set up the screen dimensions
-FPS = 60
 screen_width = 800
 screen_height = 600
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Pygame Project")
 
 clock = pygame.time.Clock()
+
+# Public variables (yucky IK)
+
+FPS = 60
+
+font=pygame.font.Font(None,30)
+
+lv_index = 0  
+
+lv_texts = ["Left and right arrow keys to move :D purple portal takes you to the next level!","Z to jump, and double jump while in the air! Beware, red squares kill you ","Press x while moving to dash","Press z on walls to wall jump","Jump immediately after dashing to get a super jump!","Thats all you need to know, good luck!"]
+
+player_level_spawns = ((80,330),(80,330))
+
+lv_colors = ["Black","Black","Black"]
+
+num_not_collides = 0
 
 class Thing(pygame.sprite.Sprite):
     def __init__(self,color,xsize,ysize,x,y): # This class just gives us a shortcut for initalizing our classes, since all our classes are rectangles
@@ -31,29 +46,44 @@ class Thing(pygame.sprite.Sprite):
         self.image.fill(self.color)
         self.rect = self.image.get_rect(center = (self.x,self.y))
     
+class Text(Thing):
+    def __init__(self,color,xsize,ysize,x,y):
+        super(Text,self).__init__(color,xsize,ysize,x,y)
+
+    def set_text(self):
+        global num_not_collides
+        num_not_collides += 1
+        self.text = font.render(lv_texts[lv_index],False,'White')
+
+    def display_text(self):
+        screen.blit(self.text,(self.rect.left+10,self.rect.top))
+
+
+    def all_methods(self,char):
+        self.set_text()
+        self.display_text()
+
+
+
 
 class Terrain(Thing):
     def __init__(self,color,xsize,ysize,x,y):
         super(Terrain,self).__init__(color,xsize,ysize,x,y)
 
     def collision(self,char):
-
         global num_not_collides
-
         char.x_speed = char.dash_speed + char.walk_speed
-
         def reset_ground(self):
             char.rect.bottom = self.rect.top
             char.jumping = False
             char.y_speed = 0
             char.double_jump_ready = 2
             char.have_dash = True
-
+        
         def bonk_head(self):
-            char.y_speed = 2 #make the player immediately fall
+            char.y_speed = 1 #make the player immediately fall
             char.rect.top = self.rect.bottom
-
-
+        
         if char.rect.colliderect(self.rect):
 
             if char.y_speed > 0: # if player falls in/on the block
@@ -67,8 +97,6 @@ class Terrain(Thing):
                     else:
                         char.rect.right = self.rect.left
                         char.on_wall = True
-                        print("wall jump true!")
-
 
 
                 else: # if player moving left or not a all (doesn't matter)
@@ -79,13 +107,17 @@ class Terrain(Thing):
                     else:
                         char.rect.left = self.rect.right
                         char.on_wall = True
-                        print("wall jump true!")
-
 
                         
             elif not char.jumping: # if player walks into the block
 
-                char.rect.centerx -= char.x_speed
+                
+                if char.x_speed > 0:
+                    char.rect.right = self.rect.left
+                else:
+                    char.rect.left = self.rect.right
+
+                #char.rect.centerx -= char.x_speed
 
 
 
@@ -99,8 +131,6 @@ class Terrain(Thing):
                     else:
                         char.rect.right = self.rect.left
                         char.on_wall = True
-                        print("wall jump true!")
-
 
 
                 else: # if player moving left or not a all (doesn't matter)
@@ -109,14 +139,17 @@ class Terrain(Thing):
 
                     else:
                         char.rect.left = self.rect.right
-                        char.on_wall = True
-                        print("wall jump true!")                           
+                        char.on_wall = True    
+
 
         elif char.rect.bottom == self.rect.top and char.rect.right > self.rect.left and char.rect.left < self.rect.right: #if player ontop of platform (being on top doesn't count as colliding for some reason)
             pass
 
         else:
             num_not_collides += 1
+
+    def all_methods(self,char):
+        self.collision(char)
 
 class Enemy(Thing):
     def __init__(self,color,xsize,ysize,x,y,speed,on_x_axis,point1,point2):
@@ -143,12 +176,14 @@ class Enemy(Thing):
 
     def collision(self,char):
         global num_not_collides
+        num_not_collides += 1
         if char.rect.colliderect(self.rect):
             self.kill_player(char)
-        else:
-            num_not_collides += 1
 
+    def all_methods(self,char):
+        self.collision(char)
         self.move()
+
 
 class Portal(Thing):
     def __init__(self,color,xsize,ysize,x,y):
@@ -158,15 +193,17 @@ class Portal(Thing):
         char.rect.centerx = player_level_spawns[lv_index][0]
         char.rect.centery = player_level_spawns[lv_index][1]
 
-
     def collision(self,char):
         global num_not_collides
+        num_not_collides += 1
         global lv_index
         if char.rect.colliderect(self.rect):
             lv_index += 1
             self.reset_player(char)
-        else:
-            num_not_collides += 1
+
+
+    def all_methods(self,char):
+        self.collision(char)
     
 
 class Player(Thing):
@@ -263,42 +300,79 @@ class Player(Thing):
         self.update_move()
         self.dash_color()
 
+# player stuff
 
-
-    
-    
-lv_index = 0   
-
-player_level_spawns = ((100,100),(400,100))
-
-player = Player("Green",30,30,300,100)
-
-platform = Terrain("Gray",200,150,130,350)
-platform2 = Terrain("Gray",200,150,680,350)
-ground = Terrain("Gray",600,100,400,500)
-
-enemy = Enemy("Red",50,50,400,300,2,True,200,400)
-
-lv_1_portal = Portal("Purple",50,50,700,150)
-
+player = Player("Green",30,30,player_level_spawns[lv_index][0],player_level_spawns[lv_index][1])
 character_list = pygame.sprite.Group()
-
-
-lv_1_terrain = pygame.sprite.Group()
-lv_2_terrain = pygame.sprite.Group() 
-lv_3_terrain = pygame.sprite.Group()
-
-lv_1_terrain.add(ground)
-lv_1_terrain.add(platform)
-lv_1_terrain.add(platform2)
-lv_1_terrain.add(enemy)
-lv_1_terrain.add(lv_1_portal)
-
 character_list.add(player)
 
-levels = [lv_1_terrain,lv_2_terrain,lv_3_terrain]
+# all level's platforms
 
-num_not_collides = 0
+lv_0_platform = Terrain("Gray",800,300,400,500)
+
+# the singular text box we need
+
+text_box = Text("Blue",800,100,400,100)
+
+# Enemy blocks
+
+lv_2_enemy = Enemy("Red",50,50,400,300,2,True,200,400)
+
+#enemy portals
+
+lv_0_to_5_portal = Portal("Purple",30,30,750,325)
+lv_6_portal = Portal("Purple",50,50,700,450)
+lv_7_portal = Portal("Purple",50,50,700,450)
+lv_8_portal = Portal("Purple",50,50,700,450)
+lv_9_portal = Portal("Purple",50,50,700,450)
+
+# defining boundaries used in all/most levels
+
+text_block = Terrain("Gray",900,300,400,150)
+
+boundary1 = Terrain("Gray",50,600,0,300)
+boundary2 = Terrain("Gray",50,600,800,300)
+boundary3 = Terrain("Gray",800,50,400,600)
+boundary4 = Terrain("Gray",800,50,400,0)
+
+boundaries = pygame.sprite.Group()
+
+boundaries.add(boundary1)
+boundaries.add(boundary2)
+boundaries.add(boundary3)
+boundaries.add(boundary4)
+
+#all the levels terrains
+
+lv_0_terrain = pygame.sprite.Group()
+lv_1_terrain = pygame.sprite.Group() 
+lv_2_terrain = pygame.sprite.Group()
+lv_3_terrain = pygame.sprite.Group()
+lv_4_terrain = pygame.sprite.Group()
+lv_5_terrain = pygame.sprite.Group()
+lv_6_terrain = pygame.sprite.Group()
+lv_7_terrain = pygame.sprite.Group()
+lv_8_terrain = pygame.sprite.Group()
+lv_9_terrain = pygame.sprite.Group()
+
+# all levels in list
+
+levels = [lv_0_terrain,lv_1_terrain,lv_2_terrain,lv_3_terrain,lv_4_terrain,lv_5_terrain,lv_6_terrain,lv_7_terrain,lv_8_terrain,lv_9_terrain]
+
+#loop for repeat stuff
+
+for i in range(len(levels)):
+    if i <= 6 or i == 9:
+        levels[i].add(text_box)
+        levels[i].add(text_block)
+        levels[i].add(lv_0_to_5_portal)
+    levels[i].add(boundaries)
+
+# adding all the stuff
+    
+
+#lv_0_terrain.add(lv_2_enemy)
+lv_0_terrain.add(lv_0_platform)
 
 
 running = True
@@ -309,7 +383,7 @@ while running:
             running = False
 
     key = pygame.key.get_pressed()
-    screen.fill("light blue")
+    screen.fill(lv_colors[lv_index])
     num_not_collides = 0
 
     character_list.draw(screen)
@@ -317,12 +391,11 @@ while running:
     levels[lv_index].draw(screen)
 
     for block in levels[lv_index]:
-        block.collision(player)
+        block.all_methods(player)
 
     if num_not_collides == len(levels[lv_index]):
         player.jumping = True
         player.on_wall = False
-        print("yeah")
 
     player.all_player_methods()
 
