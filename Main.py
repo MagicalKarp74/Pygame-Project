@@ -23,9 +23,9 @@ FPS = 60
 
 font=pygame.font.Font(None,30)
 
-lv_index = 0
+lv_index = 4
 
-lv_texts = ["Left and right arrow keys to move :D purple portal takes you to the next level!","Z to jump, and double jump while in the air! Beware, red rectangles kill you ","Press x while moving to dash","Press z on walls to wall jump","Jump immediately after dashing to get a super jump!","Thats all you need to know, good luck!"]
+lv_texts = ["Left and right arrow keys to move :D purple portal takes you to the next level!","Z to jump, and double jump while in the air! Beware, red rectangles kill you ","Press x while moving to dash","Press z on walls to wall jump, wall jumps restore double jump","Jump immediately after dashing to get a super jump!","Thats all you need to know, good luck!"]
 
 player_level_spawns = ((80,330),(80,330),(80,330),(80,330),(80,430))
 
@@ -75,7 +75,7 @@ class Terrain(Thing):
             char.rect.bottom = self.rect.top
             char.jumping = False
             char.y_speed = 0
-            char.double_jump_ready = 2
+            char.double_jump_ready = True
             char.have_dash = True
         
         def bonk_head(self):
@@ -111,7 +111,7 @@ class Terrain(Thing):
 
                 else: # if player moving left or not a all (doesn't matter)
   
-                    if char.rect.left - round(char.x_speed)+1 < self.rect.right: # +  if player land ontop of platform
+                    if char.rect.left - round(char.x_speed) < self.rect.right: # +  if player land ontop of platform
                         reset_ground(self)
 
                     else:
@@ -125,6 +125,7 @@ class Terrain(Thing):
                     char.rect.right = self.rect.left
                 else:
                     char.rect.left = self.rect.right
+                
 
 
 
@@ -140,7 +141,7 @@ class Terrain(Thing):
 
 
                 else: # if player moving left or not a all (doesn't matter)
-                    if char.rect.left - round(char.x_speed)+1 < self.rect.right: # IDK WHY THE +1 WORKS BUT IT DOES OK
+                    if char.rect.left - round(char.x_speed) < self.rect.right: # IDK WHY THE +1 WORKS BUT IT DOES OK
                         bonk_head(self)
 
                     else:
@@ -218,14 +219,19 @@ class Player(Thing):
         self.jumping = True
         self.y_speed = 0
         self.walk_speed = 0 # walk and ground speed are stupid names IK, its to late to change them now
-        self.double_jump_ready = 2
+        self.double_jump_ready = True
         self.have_dash = True
         self.dash_speed = 0 
         self.on_wall = False
+        self.holding_z = False
 
         # jump ready 2 = on ground
         # jump ready 1 = in air and hasn't used it yet
         # jump ready 0 = means in air and already used it (I should really use a enum for this)
+
+    def check_z(self):
+        if not key[pygame.K_z]:
+            self.holding_z = False
 
 
     def dash_color(self):
@@ -250,30 +256,35 @@ class Player(Thing):
             self.walk_speed = 0
 
     def jump(self):
-        if self.jumping and not key[pygame.K_z] and self.double_jump_ready != 0:
-            self.double_jump_ready = 1
+        #if self.jumping and not key[pygame.K_z] and self.double_jump_ready != 0:
+            #self.double_jump_ready = 1
 
-        if key[pygame.K_z] and not self.jumping: # and self.double_jump_ready == 2:
+        if key[pygame.K_z] and not self.jumping and not self.holding_z: # and self.double_jump_ready == 2:
             if not self.have_dash:
                 self.dash_speed += (self.walk_speed * 4)
                 self.have_dash = True
 
             self.y_speed = -10
-            self.double_jump_ready = 2
             self.jumping = True
+            self.holding_z = True
 
-        elif key[pygame.K_z] and self.jumping and self.double_jump_ready == 1:
+        elif key[pygame.K_z] and self.jumping and self.double_jump_ready and not self.holding_z:
             self.y_speed = -10
-            self.double_jump_ready = 0
+            self.double_jump_ready = False
+            self.holding_z = True
 
         if self.jumping:
             self.y_speed +=.6
+            if self.on_wall and self.y_speed > 0:
+                self.y_speed -=.4
 
     def wall_jump(self):
-        if key[pygame.K_z] and self.on_wall:
+        if key[pygame.K_z] and self.on_wall and not self.holding_z:
             self.dash_speed = self.walk_speed * -4
             self.y_speed = -8
             self.double_jump_ready = 2
+            self.holding_z = True
+
 
     def dash(self):
         if key[pygame.K_x] and self.have_dash:
@@ -302,6 +313,7 @@ class Player(Thing):
         self.update_dash()
         self.update_move()
         self.dash_color()
+        self.check_z()
 
 # player stuff
 
@@ -313,10 +325,16 @@ character_list.add(player)
 
 lv_0_1_platform = Terrain("Gray",800,300,400,500)
 lv_1_1_platform = Terrain("gray",200,200,700,550)
-lv_2_1_platform = Terrain("gray",200,300,100,500)
-lv_2_2_platform = Terrain("gray",100,250,250,500)
-lv_2_3_platform = Terrain("gray",70,275,290,500)
-lv_2_4_platform = Terrain("gray",80,15,500,500)
+lv_2_1_platform = Terrain("gray",150,300,100,500)
+lv_2_2_platform = Terrain("gray",200,275,270,500)
+lv_2_3_platform = Terrain("gray",80,15,550,500)
+lv_3_1_platform = Terrain("Gray",80,250,200,500)
+lv_3_2_platform = Terrain("Gray",80,250,350,400)
+lv_3_3_platform = Terrain("Gray",80,250,500,500)
+lv_3_4_platform = Terrain("Gray",80,250,650,400)
+lv_4_1_platform = Terrain("Gray",200,200,100,550)
+lv_4_2_platform = Terrain("Gray",200,200,700,550)
+
 
 # the singular text box we need
 
@@ -327,8 +345,9 @@ text_box = Text("Blue",800,100,400,100)
 lv_1_1_enemy = Enemy("Red",10,30,200,560,0,True,200,500)
 lv_1_2_enemy = Enemy("Red",10,70,400,540,0,True,200,500)
 lv_1_3_enemy = Enemy("Red",10,110,600,515,0,True,200,500)
-lv_2_1_enemy = Enemy("Red",55,20,227,370,0,True,200,500)
+lv_2_1_enemy = Enemy("Red",55,20,200,370,0,True,200,500)
 lv_2_2_enemy = Enemy("Red",450,20,550,570,0,True,200,500)
+lv_4_1_enemy = Enemy("Red",400,80,400,540,0,True,0,0)
 
 #enemy portals
 
@@ -396,10 +415,20 @@ lv_1_terrain.add(lv_1_1_platform)
 lv_2_terrain.add(lv_2_1_platform)
 lv_2_terrain.add(lv_2_2_platform)
 lv_2_terrain.add(lv_2_3_platform)
-lv_2_terrain.add(lv_2_4_platform)
 lv_2_terrain.add(lv_2_1_enemy)
 lv_2_terrain.add(lv_2_2_enemy)
 
+
+#lv 3 props
+lv_3_terrain.add(lv_3_1_platform)
+lv_3_terrain.add(lv_3_2_platform)
+lv_3_terrain.add(lv_3_3_platform)
+lv_3_terrain.add(lv_3_4_platform)
+
+#lv 4 props
+lv_4_terrain.add(lv_4_1_platform)
+lv_4_terrain.add(lv_4_2_platform)
+lv_4_terrain.add(lv_4_1_enemy)
 
 running = True
 while running:
