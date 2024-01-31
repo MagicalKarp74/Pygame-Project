@@ -23,7 +23,7 @@ FPS = 60
 
 font=pygame.font.Font(None,30)
 
-lv_index = 6
+lv_index = 5
 
 lv_texts = ["Left and right arrow keys to move :D purple portal takes you to the next level!","Z to jump, and double jump while in the air! Beware, red rectangles kill you ","Press x while moving to dash","Press z on walls to wall jump, wall jumps restore double jump","Jump immediately after dashing to get a super jump!","Thats all you need to know, good luck!","","","","","YOU WIN!"]
 
@@ -340,7 +340,7 @@ lv_3_3_platform = Terrain("Gray",80,250,500,500)
 lv_3_4_platform = Terrain("Gray",80,250,650,400)
 lv_4_1_platform = Terrain("Gray",250,200,100,550)
 lv_4_2_platform = Terrain("Gray",250,200,700,550)
-lv_5_1_platform = lv_0_1_platform
+lv_5_1_platform = Terrain("Gray",800,150,400,425)
 lv_6_1_platform = Terrain("Gray",50,500,400,350)
 lv_6_2_platform = Terrain("gray",300,25,150,480)
 lv_6_3_platform = Terrain("Gray",300,25,240,300)
