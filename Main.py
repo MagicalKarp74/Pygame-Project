@@ -23,11 +23,11 @@ FPS = 60
 
 font=pygame.font.Font(None,30)
 
-lv_index = 4
+lv_index = 6
 
-lv_texts = ["Left and right arrow keys to move :D purple portal takes you to the next level!","Z to jump, and double jump while in the air! Beware, red rectangles kill you ","Press x while moving to dash","Press z on walls to wall jump, wall jumps restore double jump","Jump immediately after dashing to get a super jump!","Thats all you need to know, good luck!"]
+lv_texts = ["Left and right arrow keys to move :D purple portal takes you to the next level!","Z to jump, and double jump while in the air! Beware, red rectangles kill you ","Press x while moving to dash","Press z on walls to wall jump, wall jumps restore double jump","Jump immediately after dashing to get a super jump!","Thats all you need to know, good luck!","","","","","YOU WIN!"]
 
-player_level_spawns = ((80,330),(80,330),(80,330),(80,330),(80,430))
+player_level_spawns = ((80,330),(80,330),(80,330),(80,330),(80,330),(80,330),(80,550))
 
 num_not_collides = 0
 
@@ -111,7 +111,7 @@ class Terrain(Thing):
 
                 else: # if player moving left or not a all (doesn't matter)
   
-                    if char.rect.left - round(char.x_speed) < self.rect.right: # +  if player land ontop of platform
+                    if char.rect.left - round(char.x_speed)+1 < self.rect.right: # +  if player land ontop of platform
                         reset_ground(self)
 
                     else:
@@ -141,7 +141,7 @@ class Terrain(Thing):
 
 
                 else: # if player moving left or not a all (doesn't matter)
-                    if char.rect.left - round(char.x_speed) < self.rect.right: # IDK WHY THE +1 WORKS BUT IT DOES OK
+                    if char.rect.left - round(char.x_speed)+1 < self.rect.right: # IDK WHY THE +1 WORKS BUT IT DOES OK
                         bonk_head(self)
 
                     else:
@@ -224,6 +224,7 @@ class Player(Thing):
         self.dash_speed = 0 
         self.on_wall = False
         self.holding_z = False
+        self.holding_k = False
 
         # jump ready 2 = on ground
         # jump ready 1 = in air and hasn't used it yet
@@ -232,6 +233,10 @@ class Player(Thing):
     def check_z(self):
         if not key[pygame.K_z]:
             self.holding_z = False
+
+    def check_k(self):
+        if not key[pygame.K_x]:
+            self.holding_k = False
 
 
     def dash_color(self):
@@ -287,11 +292,11 @@ class Player(Thing):
 
 
     def dash(self):
-        if key[pygame.K_x] and self.have_dash:
+        if key[pygame.K_x] and self.have_dash and not self.holding_k:
             self.have_dash = False
             self.dash_speed = self.walk_speed * 8.5
             self.y_speed = 0
-            #self.rect.centery -= 1
+            self.holding_k = True
             
     def update_dash(self):
         self.dash_speed *= .9
@@ -314,6 +319,7 @@ class Player(Thing):
         self.update_move()
         self.dash_color()
         self.check_z()
+        self.check_k()
 
 # player stuff
 
@@ -332,8 +338,16 @@ lv_3_1_platform = Terrain("Gray",80,250,200,500)
 lv_3_2_platform = Terrain("Gray",80,250,350,400)
 lv_3_3_platform = Terrain("Gray",80,250,500,500)
 lv_3_4_platform = Terrain("Gray",80,250,650,400)
-lv_4_1_platform = Terrain("Gray",200,200,100,550)
-lv_4_2_platform = Terrain("Gray",200,200,700,550)
+lv_4_1_platform = Terrain("Gray",250,200,100,550)
+lv_4_2_platform = Terrain("Gray",250,200,700,550)
+lv_5_1_platform = lv_0_1_platform
+lv_6_1_platform = Terrain("Gray",50,500,400,350)
+lv_6_2_platform = Terrain("gray",300,25,150,480)
+lv_6_3_platform = Terrain("Gray",300,25,240,300)
+
+lv_6_4_platform = Terrain("Gray",30,30,250,450)
+lv_6_5_platform = Terrain("Gray",30,30,100,450)
+lv_6_6_platform = Terrain("Gray",60,20,750,380)
 
 
 # the singular text box we need
@@ -347,7 +361,12 @@ lv_1_2_enemy = Enemy("Red",10,70,400,540,0,True,200,500)
 lv_1_3_enemy = Enemy("Red",10,110,600,515,0,True,200,500)
 lv_2_1_enemy = Enemy("Red",55,20,200,370,0,True,200,500)
 lv_2_2_enemy = Enemy("Red",450,20,550,570,0,True,200,500)
-lv_4_1_enemy = Enemy("Red",400,80,400,540,0,True,0,0)
+lv_4_1_enemy = Enemy("Red",350,80,400,540,0,True,0,0)
+lv_6_1_enemy = Enemy("red",80,20,200,570,2,True,140,210)
+lv_6_2_enemy = Enemy("red",280,20,160,470,0,True,0,0)
+lv_6_3_enemy = Enemy("red",200,50,200,270,4,False,20,250)
+lv_6_4_enemy = Enemy("red",280,20,570,200,0,False,0,0)
+lv_6_5_enemy = Enemy("red",10,60,640,300,0,False,0,0)
 
 #enemy portals
 
@@ -393,7 +412,7 @@ levels = [lv_0_terrain,lv_1_terrain,lv_2_terrain,lv_3_terrain,lv_4_terrain,lv_5_
 #loop for repeat stuff
 
 for i in range(len(levels)):
-    if i <= 6 or i == 9:
+    if i <= 5 or i == 9:
         levels[i].add(text_box)
         levels[i].add(text_block)
         levels[i].add(lv_0_to_5_portal)
@@ -429,6 +448,24 @@ lv_3_terrain.add(lv_3_4_platform)
 lv_4_terrain.add(lv_4_1_platform)
 lv_4_terrain.add(lv_4_2_platform)
 lv_4_terrain.add(lv_4_1_enemy)
+
+#lv 5 props
+lv_5_terrain.add(lv_5_1_platform)
+
+#lv 6 props
+lv_6_terrain.add(lv_6_1_platform)
+lv_6_terrain.add(lv_6_2_platform)
+lv_6_terrain.add(lv_6_3_platform)
+lv_6_terrain.add(lv_6_4_platform)
+lv_6_terrain.add(lv_6_5_platform)
+lv_6_terrain.add(lv_6_6_platform)
+
+lv_6_terrain.add(lv_6_1_enemy)
+lv_6_terrain.add(lv_6_2_enemy)
+lv_6_terrain.add(lv_6_3_enemy)
+lv_6_terrain.add(lv_6_4_enemy)
+lv_6_terrain.add(lv_6_5_enemy)
+
 
 running = True
 while running:
