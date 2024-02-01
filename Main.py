@@ -31,6 +31,18 @@ player_level_spawns = ((80,330),(80,330),(80,330),(80,330),(80,330),(80,330),(80
 
 num_not_collides = 0
 
+image_0 = pygame.image.load("Animations\Frame_0.jpg").convert_alpha()
+image_1 = pygame.image.load("Animations\Frame_1.jpg").convert_alpha()
+image_2 = pygame.image.load("Animations\Frame_2.jpg").convert_alpha()
+image_3 = pygame.image.load("Animations\Frame_3.jpg").convert_alpha()
+image_4 = pygame.image.load("Animations\Frame_4.jpg").convert_alpha()
+image_5 = pygame.image.load("Animations\Frame_5.jpg").convert_alpha()
+image_6 = pygame.image.load("Animations\Frame_6.jpg").convert_alpha()
+image_7 = pygame.image.load("Animations\Frame_7.jpg").convert_alpha()
+
+animation = [image_0,image_1,image_2,image_3,image_4,image_5,image_6,image_7]
+
+
 class Thing(pygame.sprite.Sprite):
     def __init__(self,color,xsize,ysize,x,y): # This class just gives us a shortcut for initalizing our classes, since all our classes are rectangles
         super(Thing,self).__init__()
@@ -62,7 +74,40 @@ class Text(Thing):
         self.display_text()
 
 
+class Animation(Thing):
+    def __init__(self,xsize,ysize,x,y,animate_list):
+        self.xsize = xsize
+        self.ysize = ysize
+        self.x = x
+        self.y = y
+        self.time = 0
+        self.index = 0
+        self.animate_list = animate_list
+        for image in self.animate_list:
+            image = pygame.transform.scale(image,(self.xsize,self.ysize))
 
+    def time(self):
+        self.time+=1
+        if self.time > 100:
+            self.time = 0
+
+    def index(self):
+        if self.time % 6 == 0:
+            self.index +=1
+        if self.index > len(self.animate_list):
+            self.index = 0
+
+    def display(self):
+        screen.blit(self.animate_list[self.time](self.x,self.y))
+
+    def all_methods(self):
+        self.time()
+        self.index()
+        self.display()
+
+
+
+    
 
 class Terrain(Thing):
     def __init__(self,color,xsize,ysize,x,y):
@@ -326,6 +371,9 @@ class Player(Thing):
 player = Player("Green",30,30,player_level_spawns[lv_index][0],player_level_spawns[lv_index][1])
 character_list = pygame.sprite.Group()
 character_list.add(player)
+#da animation
+
+banana = Animation(100,100,100,100,animation)
 
 # all level's platforms
 
@@ -444,6 +492,7 @@ for i in range(len(levels)):
         levels[i].add(text_box)
         levels[i].add(text_block)
         levels[i].add(lv_0_to_5_portal)
+        levels[i].add(banana)
     levels[i].add(boundaries)
 
 # adding all the stuff
@@ -562,12 +611,14 @@ while running:
 
 
 
+
     
 
     # Update the display
     pygame.display.flip()
 
     # Set a frame rate to 60 frames per second
+
     clock.tick(60)
     #dt = clock.tick(FPS)/1000
     #print(dt)
