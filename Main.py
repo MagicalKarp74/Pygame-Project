@@ -23,11 +23,11 @@ FPS = 60
 
 font=pygame.font.Font(None,30)
 
-lv_index = 7
+lv_index = 0
 
-lv_texts = ["Left and right arrow keys to move :D purple portal takes you to the next level!","Z to jump, and double jump while in the air! Beware, red rectangles kill you ","Press x while moving to dash","Press z on walls to wall jump, wall jumps restore double jump","Jump immediately after dashing to get a super jump!","Thats all you need to know, good luck!","","","","","YOU WIN!"]
+lv_texts = ["Left and right arrow keys to move :D purple portal takes you to the next level!","Z to jump, and double jump while in the air! Beware, red rectangles kill you ","Press x while moving to dash","Press z on walls to wall jump, wall jumps restore double jump","Jump immediately after dashing to get a super jump!","Thats all you need to know, good luck!","","","","YOU WIN!        Entering next portal exits (crashes) the game"]
 
-player_level_spawns = ((80,330),(80,330),(80,330),(80,330),(80,330),(80,330),(80,550),(80,100),(80,100))
+player_level_spawns = ((80,330),(80,330),(80,330),(80,330),(80,330),(80,330),(80,550),(80,100),(80,80),(80,560))
 
 num_not_collides = 0
 
@@ -312,8 +312,8 @@ class Player(Thing):
 
     def all_player_methods(self):
         self.walk()
-        self.jump()
         self.wall_jump()
+        self.jump()
         self.dash()
         self.update_dash()
         self.update_move()
@@ -351,6 +351,12 @@ lv_7_1_platform = Terrain("Gray",180,30,100,165)
 lv_7_2_platform = Terrain("Gray",180,30,600,165)
 lv_7_3_platform = Terrain("Gray",180,30,690,420)
 lv_7_4_platform = Terrain("Gray",180,30,200,420)
+lv_8_1_platform = Terrain("Gray",70,20,60,110)
+lv_8_2_platform = Terrain("Gray",30,560,150,200)
+lv_8_3_platform = Terrain("Gray",300,150,400,400)
+lv_8_4_platform = Terrain("Gray",30,560,650,200)
+lv_8_5_platform = Terrain("Gray",30,200,290,230)
+lv_8_6_platform = Terrain("Gray",30,200,510,230)
 
 
 # the singular text box we need
@@ -379,6 +385,15 @@ lv_7_3_enemy = Enemy("red",55,55,400,400,10,False,50,550)
 lv_7_4_enemy = Enemy("red",30,30,275,560,0,False,0,0)
 lv_7_5_enemy = Enemy("red",30,30,550,560,0,False,0,0)
 
+lv_8_1_enemy = Enemy("red",30,30,20,200,2,True,1,130)
+lv_8_2_enemy = Enemy("red",30,30,130,400,2,True,1,130)
+lv_8_3_enemy = Enemy("red",20,120,100,530,8,True,1,799)
+lv_8_4_enemy = Enemy("red",20,120,400,530,0,True,1,799)
+lv_8_5_enemy = Enemy("red",200,20,400,330,0,True,1,799)
+lv_8_6_enemy = Enemy("red",20,150,400,100,0,True,1,799)
+lv_8_7_enemy = Enemy("red",30,30,660,200,0,True,1,130)
+lv_8_8_enemy = Enemy("red",30,30,780,400,0,True,1,130)
+
 
 
 #enemy portals
@@ -386,7 +401,7 @@ lv_7_5_enemy = Enemy("red",30,30,550,560,0,False,0,0)
 lv_0_to_5_portal = Portal("Purple",30,30,750,325)
 lv_6_portal = Portal("Purple",50,50,700,500)
 lv_7_portal = Portal("Purple",50,50,700,450)
-lv_8_portal = Portal("Purple",50,50,700,450)
+lv_8_portal = Portal("Purple",50,50,720,80)
 lv_9_portal = Portal("Purple",50,50,700,450)
 
 # defining boundaries used in all/most levels
@@ -497,6 +512,27 @@ lv_7_terrain.add(lv_7_4_enemy)
 lv_7_terrain.add(lv_7_5_enemy)
 
 lv_7_terrain.add(lv_6_portal)
+
+#lv 8
+
+lv_8_terrain.add(lv_8_1_platform)
+lv_8_terrain.add(lv_8_2_platform)
+lv_8_terrain.add(lv_8_3_platform)
+lv_8_terrain.add(lv_8_4_platform)
+lv_8_terrain.add(lv_8_5_platform)
+lv_8_terrain.add(lv_8_6_platform)
+
+lv_8_terrain.add(lv_8_1_enemy)
+lv_8_terrain.add(lv_8_2_enemy)
+lv_8_terrain.add(lv_8_3_enemy)
+lv_8_terrain.add(lv_8_4_enemy)
+lv_8_terrain.add(lv_8_5_enemy)
+lv_8_terrain.add(lv_8_6_enemy)
+lv_8_terrain.add(lv_8_7_enemy)
+lv_8_terrain.add(lv_8_8_enemy)
+
+lv_8_terrain.add(lv_8_portal)
+
 
 
 running = True
