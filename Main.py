@@ -80,29 +80,33 @@ class Animation(Thing):
         self.ysize = ysize
         self.x = x
         self.y = y
-        self.time = 0
-        self.index = 0
+        self.timer = 0
+        self.animate_index = 0
         self.animate_list = animate_list
+        self.chad_list = []
         for image in self.animate_list:
             image = pygame.transform.scale(image,(self.xsize,self.ysize))
+            self.chad_list.append(image)
 
     def time(self):
-        self.time+=1
-        if self.time > 100:
-            self.time = 0
+        self.timer+=1
+        if self.timer > 100:
+            self.timer = 0
 
-    def index(self):
-        if self.time % 6 == 0:
-            self.index +=1
-        if self.index > len(self.animate_list):
-            self.index = 0
+    def index(self,dude):
+        if self.timer % 8 == 0:
+            self.animate_index +=1
+        if self.animate_index > len(self.animate_list)-1:
+            self.animate_index = 0
+        if dude.jumping:
+            self.animate_index = 0
 
     def display(self):
-        screen.blit(self.animate_list[self.time](self.x,self.y))
+        screen.blit(self.chad_list[self.animate_index],(self.x,self.y))
 
-    def all_methods(self):
+    def all_methods(self,dude):
         self.time()
-        self.index()
+        self.index(dude)
         self.display()
 
 
@@ -373,7 +377,7 @@ character_list = pygame.sprite.Group()
 character_list.add(player)
 #da animation
 
-banana = Animation(100,100,100,100,animation)
+banana = Animation(100,100,10,80,animation)
 
 # all level's platforms
 
@@ -492,7 +496,6 @@ for i in range(len(levels)):
         levels[i].add(text_box)
         levels[i].add(text_block)
         levels[i].add(lv_0_to_5_portal)
-        levels[i].add(banana)
     levels[i].add(boundaries)
 
 # adding all the stuff
@@ -608,6 +611,9 @@ while running:
         player.on_wall = False
 
     player.all_player_methods()
+
+    if lv_index < 6 or lv_index ==9:
+        banana.all_methods(player)
 
 
 
